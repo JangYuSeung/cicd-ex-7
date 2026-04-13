@@ -1,0 +1,56 @@
+name: Private EC2 via SSM and ECR
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to EC2(with SSM and ECR)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # SSM과 ECR을 사용하기 위한 AWS 자격 증명 구성
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr # ECR Registry에 로그인하기 위한 단계. ECR에 이미지를 푸시할 수 있도록 설정
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Docker 이미지를 빌드하고 ECR에 푸시: 사용자 계정에 역할 필요
+      - name: Build and Push Docker Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ secrets.DOCKER_IMAGE_TAG }}
+        run: |
+          # Docker 이미지를 빌드
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+          # Docker 이미지를 ECR에 푸시
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to EC2 via SSM
+        run: |
+          # SSM을 사용하여 EC2 인스턴스에 명령 실행
+          IMAGE_URL="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ secrets.DOCKER_IMAGE_TAG }}"
+          
+          aws ssm send-command \
+            --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+                "aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}",
+                "docker pull $IMAGE_URL",
+                "docker stop nginx-container || true",
+                "docker rm nginx-container || true",
+                "docker run -d -p 80:80 --name nginx-container $IMAGE_URL"
+            ]' \
+            --region ${{ secrets.AWS_REGION }}
