@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker CI/CD 배포 완료!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #0db7ed; /* Docker Blue */
+            color: white;
+        }
+        .card {
+            background: white;
+            color: #333;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .docker-logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .status-dot {
+            height: 12px;
+            width: 12px;
+            background-color: #28a745;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            animation: blink 1.5s infinite;
+        }
+        h1 { color: #0db7ed; margin-top: 0; }
+        .info {
+            background: #f1f3f5;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            text-align: left;
+            font-size: 0.9rem;
+            margin: 1.5rem 0;
+        }
+        .pipeline-tag {
+            font-size: 0.8rem;
+            background: #0db7ed;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="docker-logo">🐳</div>
+        <h1>배포 성공!</h1>
+        <p><span class="status-dot"></span> <strong>Nginx Container</strong> is running.</p>
+        
+        <div class="info">
+            <div>$ git push origin main</div>
+            <div>$ github-actions: <span style="color: #28a745;">success</span></div>
+            <div>$ docker-hub: <span style="color: #28a745;">pushed</span></div>
+            <div>$ aws-ssm: <span style="color: #28a745;">command_sent</span></div>
+        </div>
+
+        <p>본 페이지는 <strong>Docker Hub</strong>를 거쳐<br><strong>AWS EC2</strong>에 자동 배포된 결과물입니다.</p>
+        
+        <div style="margin-top: 1rem;">
+            <span class="pipeline-tag">GitHub Actions</span>
+            <span class="pipeline-tag">Docker</span>
+            <span class="pipeline-tag">AWS SSM</span>
+        </div>
+    </div>
+
+</body>
+</html>
