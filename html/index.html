@@ -3,87 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker CI/CD 배포 완료!</title>
+    <title>AWS Private EC2 배포 성공!</title>
     <style>
+        :root {
+            --aws-orange: #FF9900;
+            --aws-blue: #232F3E;
+            --success-green: #36B37E;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            background-color: #0db7ed; /* Docker Blue */
-            color: white;
+            background-color: #f4f7f9;
+            color: var(--aws-blue);
         }
-        .card {
+        .container {
             background: white;
-            color: #333;
-            padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             text-align: center;
-            max-width: 500px;
+            max-width: 650px;
             width: 90%;
+            border-top: 8px solid var(--aws-orange);
         }
-        .docker-logo {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        .status-dot {
-            height: 12px;
-            width: 12px;
-            background-color: #28a745;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-            animation: blink 1.5s infinite;
-        }
-        h1 { color: #0db7ed; margin-top: 0; }
-        .info {
-            background: #f1f3f5;
-            padding: 1rem;
-            border-radius: 8px;
-            font-family: monospace;
-            text-align: left;
-            font-size: 0.9rem;
-            margin: 1.5rem 0;
-        }
-        .pipeline-tag {
-            font-size: 0.8rem;
-            background: #0db7ed;
+        .badge {
+            background-color: var(--success-green);
             color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
         }
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
+        h1 { margin: 10px 0; font-size: 2rem; }
+        .flow-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #fdfdfd;
+            border: 1px dashed #ccc;
+            border-radius: 12px;
         }
+        .node { font-size: 0.85rem; font-weight: 600; color: #555; }
+        .arrow { color: var(--aws-orange); font-weight: bold; }
+        .details {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .highlight { color: var(--aws-orange); font-weight: bold; }
+        footer { margin-top: 30px; font-size: 0.8rem; color: #999; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="docker-logo">🐳</div>
-        <h1>배포 성공!</h1>
-        <p><span class="status-dot"></span> <strong>Nginx Container</strong> is running.</p>
-        
-        <div class="info">
-            <div>$ git push origin main</div>
-            <div>$ github-actions: <span style="color: #28a745;">success</span></div>
-            <div>$ docker-hub: <span style="color: #28a745;">pushed</span></div>
-            <div>$ aws-ssm: <span style="color: #28a745;">command_sent</span></div>
-        </div>
+<div class="container">
+    <div class="badge">LIVE: Private EC2 Container</div>
+    <h1>CI/CD 파이프라인 배포 성공 🚀</h1>
+    <p>GitHub Actions가 ECR에 이미지를 푸시하고,<br>SSM을 통해 Private EC2의 Nginx 컨테이너를 교체했습니다.</p>
 
-        <p>본 페이지는 <strong>Docker Hub</strong>를 거쳐<br><strong>AWS EC2</strong>에 자동 배포된 결과물입니다.</p>
-        
-        <div style="margin-top: 1rem;">
-            <span class="pipeline-tag">GitHub Actions</span>
-            <span class="pipeline-tag">Docker</span>
-            <span class="pipeline-tag">AWS SSM</span>
-        </div>
+    <div class="flow-diagram">
+        <div class="node">GitHub</div>
+        <div class="arrow">➔</div>
+        <div class="node">Amazon ECR</div>
+        <div class="arrow">➔</div>
+        <div class="node">AWS SSM</div>
+        <div class="arrow">➔</div>
+        <div class="node">Private EC2</div>
     </div>
+
+    <div class="details">
+        • <b>Trigger:</b> main 브랜치 push 이벤트<br>
+        • <b>Security:</b> 인바운드 규칙 없이 <span class="highlight">SSM Agent</span>로 명령 실행<br>
+        • <b>Storage:</b> <span class="highlight">ECR</span>에서 최신 Docker 이미지 Pull 완료
+    </div>
+
+    <footer>
+        성공적인 아키텍처 구성을 축하합니다! | 업데이트: <span id="time"></span>
+    </footer>
+</div>
+
+<script>
+    document.getElementById('time').innerText = new Date().toLocaleString('ko-KR');
+</script>
 
 </body>
 </html>
