@@ -13,7 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # SSM과 ECR을 사용하기 위한 AWS 자격 증명 구성
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -22,27 +21,20 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr # ECR Registry에 로그인하기 위한 단계. ECR에 이미지를 푸시할 수 있도록 설정
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Docker 이미지를 빌드하고 ECR에 푸시: 사용자 계정에 역할 필요
       - name: Build and Push Docker Image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ secrets.DOCKER_IMAGE_TAG }}
+          IMAGE_TAG: ${{ secrets.DOCKER_IMAGE_TAG }}   # ✅ 오타 수정
         run: |
-          # Docker 이미지를 빌드
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-
-          # Docker 이미지를 ECR에 푸시
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Deploy to EC2 via SSM
         run: |
-          # SSM을 사용하여 EC2 인스턴스에 명령 실행
-          IMAGE_URL="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ secrets.DOCKER_IMAGE_TAG }}"
-          
           aws ssm send-command \
             --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
             --document-name "AWS-RunShellScript" \
@@ -51,6 +43,6 @@ jobs:
                 "docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ secrets.DOCKER_IMAGE_TAG }}",
                 "docker stop nginx-container || true",
                 "docker rm nginx-container || true",
-                "docker run -d -p 80:80 --name nginx-container $IMAGE_URL"
+                "docker run -d -p 80:80 --name nginx-container ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ secrets.DOCKER_IMAGE_TAG }}"
             ]' \
             --region ${{ secrets.AWS_REGION }}
